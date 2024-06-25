@@ -18,5 +18,33 @@ mkShell {
 
     lld
     pkg-config
+
+
+    git
+    gitRepo
+    gnupg
+    autoconf
+    curl
+    procps
+    gnumake
+    util-linux
+    m4
+    gperf
+    unzip
+    cudatoolkit
+    libGLU
+    libGL
+    freeglut
+    zlib
+    ncurses5
+    stdenv.cc
+    binutils
   ];
+
+  shellHook = ''
+    export CUDA_PATH=${pkgs.cudatoolkit}
+    # export LD_LIBRARY_PATH=${pkgs.linuxPackages.nvidia_x11}/lib:${pkgs.ncurses5}/lib
+    # export EXTRA_LDFLAGS="-L/lib -L${pkgs.linuxPackages.nvidia_x11}/lib"
+    export EXTRA_CCFLAGS="-I/usr/include"
+  '';
 }
