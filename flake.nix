@@ -1,5 +1,5 @@
 {
-  description = "Bellman's GAP compiler";
+  description = "Needleman Wunsch Sycl implementation";
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
     systems.url = "github:nix-systems/default";
@@ -21,8 +21,11 @@
           inherit (sycl.legacyPackages.${prev.system})
             opensycl;
         };
-        pkgs = (nixpkgs.legacyPackages.${system}.extend overlay);
-
+        pkgs = (import nixpkgs {
+          system = system;
+          overlays = [ overlay ];
+          config = { allowUnfree = true; }; # Enable unfree software
+        });
       in
       {
         # overlay = overlay;
