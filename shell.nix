@@ -19,9 +19,4 @@ mkShell {
     lld
     pkg-config
   ];
-
-  ACPP_TARGETS = "omp.library-only";
-  LD_LIBRARY_PATH = "";
-  CC = "clang";
-  CXX = "clang++";
 }

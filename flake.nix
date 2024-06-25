@@ -13,7 +13,6 @@
     , nixpkgs
     , flake-utils
     , sycl
-    ,
     }:
     flake-utils.lib.eachDefaultSystem
       (system:
@@ -28,5 +27,6 @@
       {
         # overlay = overlay;
         devShells.default = import ./shell.nix { inherit pkgs; };
+        packages.default = pkgs.callPackage ./package.nix { };
       });
 }
