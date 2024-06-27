@@ -37,24 +37,7 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs",
-        "sycl": "sycl",
         "systems": "systems_2"
-      }
-    },
-    "sycl": {
-      "locked": {
-        "lastModified": 1710411920,
-        "narHash": "sha256-iErgpY/TN9plfOt+j+jzOdByg1lehTdMiZXbdQNkg44=",
-        "owner": "r-ryantm",
-        "repo": "nixpkgs",
-        "rev": "6ee9527300511b423fbc60ddb3d935dcfcf2aabb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "r-ryantm",
-        "ref": "auto-update/opensycl",
-        "repo": "nixpkgs",
-        "type": "github"
       }
     },
     "systems": {

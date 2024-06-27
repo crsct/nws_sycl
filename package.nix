@@ -1,13 +1,9 @@
 { stdenv
 , fetchFromGitHub
-, flex
-, bison
-, boost
-, gsl
-,
+, pkgs ? import <nixpkgs> { }
 }:
 stdenv.mkDerivation {
-  name = "gapc";
+  name = "nws_sycl";
   version = "2023-07-05";
 
   src = fetchFromGitHub {
@@ -16,7 +12,7 @@ stdenv.mkDerivation {
     sha256 = "";
   };
 
-  nativeBuildInputs = [
+  nativeBuildInputs = with pkgs; [
     nixpkgs-fmt
     opensycl
     gnumake
