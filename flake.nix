@@ -15,8 +15,12 @@
     flake-utils.lib.eachDefaultSystem
       (system:
       let
+        overlays = final: prev: {
+          final.cudaPackages = prev.cudaPackages_11_5;
+        };
         pkgs = (import nixpkgs {
           system = system;
+          overlay = overlays;
           config = {
             # cudaPackages = pkgs.cudaPackages_11_5;
             cudaForwardCompat = true;
@@ -31,7 +35,7 @@
         devShells.default = import ./shell.nix { inherit pkgs; };
         packages = {
           default = pkgs.callPackage ./package.nix { inherit pkgs; };
-          sycl = pkgs.callPackage ./opensycl.nix { cudaPackages = cudaPackages_12_1; inherit pkgs; };
+          sycl = pkgs.callPackage ./opensycl.nix { inherit pkgs; };
         };
       });
 }
