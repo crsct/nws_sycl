@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs>, cudaPackages ? cudaPackages }:
+{ pkgs ? import <nixpkgs>, cudaPackages ? pkgs.cudaPackages }:
 
 with pkgs;
 mkShell {

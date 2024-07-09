@@ -30,7 +30,10 @@
         });
       in
       {
-        devShells.default = import ./shell.nix { inherit pkgs; cudaPackages = pkgs.cudaPackages_11_5; };
+        devShells = {
+            default = import ./shell.nix { inherit pkgs; };
+            cuda_11_5 = import ./shell.nix { inherit pkgs; cudaPackages = pkgs.cudaPackages_11_5; };
+        };
         packages = {
           default = pkgs.callPackage ./package.nix { inherit pkgs; };
           sycl = pkgs.callPackage ./opensycl.nix { inherit pkgs; };
