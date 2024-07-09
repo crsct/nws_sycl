@@ -1,7 +1,7 @@
 {
   description = "Needleman Wunsch Sycl implementation";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     systems.url = "github:nix-systems/default";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -16,13 +16,12 @@
       (system:
       let
         overlays = final: prev: {
-          final.cudaPackages = prev.cudaPackages_11_5;
         };
         pkgs = (import nixpkgs {
           system = system;
           overlay = overlays;
+          
           config = {
-            # cudaPackages = pkgs.cudaPackages_11_5;
             cudaForwardCompat = true;
             cudaCapabilities = [ "7.5" ];
             cudaSupport = true;
@@ -31,8 +30,7 @@
         });
       in
       {
-        # overlay = overlay;
-        devShells.default = import ./shell.nix { inherit pkgs; };
+        devShells.default = import ./shell.nix { inherit pkgs; cudaPackages = pkgs.cudaPackages_11_5; };
         packages = {
           default = pkgs.callPackage ./package.nix { inherit pkgs; };
           sycl = pkgs.callPackage ./opensycl.nix { inherit pkgs; };
