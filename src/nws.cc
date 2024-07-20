@@ -1,6 +1,6 @@
 #include "nws.hh"
 
-using namespace cl;
+using namespace sycl;
 
 struct tile {
   int i;
@@ -72,6 +72,10 @@ int main(int argc, char *argv[]) {
   // first two arguments are read as sequences
   std::string seq1 = argv[1];
   std::string seq2 = argv[2];
+
+  std::vector<char> charSeq1(seq1.begin(), seq1.end());
+  std::vector<char> charSeq2(seq2.begin(), seq2.end());
+
   int tile_size = 3;
 
   size_t n = seq1.size() + 1;
@@ -81,21 +85,21 @@ int main(int argc, char *argv[]) {
 
   sycl::queue q;
 
-  std::vector<int> result(n * m);
-  sycl::buffer result_buffer(result.data(), sycl::range<2>{n, m});
-
+  sycl::buffer<int, 1> results(sycl::range<1>(n*m));
 
   // Initialize the first row and column of the matrix statically
-  for (int i = 0; i < n; i++) {
-    result[i * m] = i * GAP_PENALTY;
-  }
-
-  for (int j = 0; j < m; j++) {
-    result[j] = j * GAP_PENALTY;
+  {
+    sycl::host_accessor result{results};
+    for (int i = 0; i < n; i++) {
+      result[i * m] = i * GAP_PENALTY;
+    }
+    for (int j = 0; j < m; j++) {
+      result[j] = j * GAP_PENALTY;
+    }
   }
 
   // Setup subsets (rows in rotated matrix)
-  for (int i = 0; i < floor((n + m) / 3); i++) {
+  for (int i = 0; i < std::floor((n + m) / 3); i++) {
     std::vector<tile> subset;
     int counter = (M.back().i + M.back().j);
 
@@ -109,13 +113,19 @@ int main(int argc, char *argv[]) {
     } while ((M.back().i + M.back().j) == counter);
 
     if (!subset.empty()) {
-      sycl::buffer<tile, 1> buffer(subset.data(),
+      sycl::buffer<tile, 1> bSubset(subset.data(),
                                    sycl::range<1>{subset.size()});
+
+      sycl::buffer<char, 1> bSeq1(charSeq1.data(), charSeq1.size());
+      sycl::buffer<char, 1> bSeq2(charSeq2.data(), charSeq2.size());
+
       // This is the part that actually does the calculations
       q.submit([&](sycl::handler &cgh) {
         // create accessors for the buffers we defined earlier
-        auto aSubset = buffer.get_access<sycl::access::mode::read>(cgh);
-        auto aResult = result_buffer.get_access<sycl::access::mode::write>(cgh);
+        auto aSubset = sycl::accessor{bSubset, cgh, sycl::read_only};
+        auto aResult = sycl::accessor{results, cgh, sycl::read_write};
+        auto aSeq1 = sycl::accessor{bSeq1, cgh, sycl::read_only};
+        auto aSeq2 = sycl::accessor{bSeq2, cgh, sycl::read_only};
 
         // parallel version of the for loop in sycl
         cgh.parallel_for(sycl::range<1>(aSubset.size()), [=](sycl::id<1> idx) {
@@ -124,12 +134,12 @@ int main(int argc, char *argv[]) {
               int posx = aSubset[idx].i + x;
               int posy = aSubset[idx].j + y;
 
-              int sub = aResult[posx - 1][posy - 1] +
-                        (seq1[posx - 1] == seq2[posy - 1] ? MATCH_SCORE
+              int sub = aResult[(posx - 1) * m + posy - 1] +
+                        (aSeq1[posx - 1] == aSeq2[posy - 1] ? MATCH_SCORE
                                                           : MISMATCH_SCORE);
-              int del = aResult[posx - 1][posy] + GAP_PENALTY;
-              int ins = aResult[posx][posy - 1] + GAP_PENALTY;
-              aResult[posx][posy] = std::max({sub, del, ins});
+              int del = aResult[(posx - 1) * m + posy] + GAP_PENALTY;
+              int ins = aResult[posx * m + posy - 1] + GAP_PENALTY;
+              aResult[posx * m + posy] = std::max({sub, del, ins});
             }
           }
         });
@@ -138,6 +148,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
+  sycl::host_accessor result{results};
   std::cout << "Seq1: " + seq1 << std::endl << "Seq2: " + seq2 << std::endl;
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < m; j++) {
